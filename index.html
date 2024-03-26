@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fulbito</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .column {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .form-container {
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        select {
+            width: 100%;
+            min-height: 150px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        #donation-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+    <script>
+        var jugadores = [];
+
+        function agregarJugador() {
+            var nombre = document.getElementById("nombre").value;
+            var habilidades = [];
+
+            for (var i = 1; i <= 9; i++) {
+                habilidades.push(parseInt(document.getElementById("hab" + i).value));
+            }
+
+            if (nombre.trim() === "" || habilidades.some(habilidad => isNaN(habilidad) || habilidad < 0 || habilidad > 10)) {
+                alert("Ingrese un nombre válido y habilidades entre 0 y 10.");
+                return;
+            }
+
+            if (jugadores.find(jugador => jugador.nombre === nombre)) {
+                alert("El nombre del jugador ya existe.");
+                return;
+            }
+
+            var jugador = {
+                nombre: nombre,
+                habilidades: habilidades
+            };
+
+            jugadores.push(jugador);
+
+            actualizarListaJugadores();
+        }
+
+        function actualizarListaJugadores() {
+            var jugadoresSelect = document.getElementById("editarJugador");
+            jugadoresSelect.innerHTML = "";
+
+            jugadores.forEach(function (jugador) {
+                var option = document.createElement("option");
+                option.text = jugador.nombre;
+                jugadoresSelect.add(option);
+            });
+        }
+
+        function eliminarJugador() {
+            var jugadoresSelect = document.getElementById("editarJugador");
+            var indices = [];
+
+            for (var i = 0; i < jugadoresSelect.options.length; i++) {
+                if (jugadoresSelect.options[i].selected) {
+                    indices.push(i);
+                }
+            }
+
+            indices.reverse().forEach(index => {
+                jugadores.splice(index, 1);
+            });
+
+            actualizarListaJugadores();
+        }
+
+        function editarJugador() {
+            var jugadoresSelect = document.getElementById("editarJugador");
+            var indice = jugadoresSelect.selectedIndex;
+
+            if (indice >= 0) {
+                var jugadorSeleccionado = jugadores[indice];
+                var nombreNuevo = prompt("Editar nombre del jugador:", jugadorSeleccionado.nombre);
+
+                if (nombreNuevo !== null) {
+                    jugadorSeleccionado.nombre = nombreNuevo;
+                    actualizarListaJugadores();
+                }
+
+                var habilidadesNuevas = prompt("Editar habilidades del jugador " + nombreNuevo + ":", jugadorSeleccionado.habilidades.join(","));
+
+                if (habilidadesNuevas !== null) {
+                    habilidadesNuevas = habilidadesNuevas.split(",").map(habilidad => parseInt(habilidad.trim()));
+                    jugadorSeleccionado.habilidades = habilidadesNuevas;
+                }
+            }
+        }
+
+        function formarEquipos() {
+            var jugadoresSelect = document.getElementById("editarJugador");
+            var jugadoresSeleccionados = [];
+
+            for (var i = 0; i < jugadoresSelect.options.length; i++) {
+                if (jugadoresSelect.options[i].selected) {
+                    jugadoresSeleccionados.push(jugadores[i]);
+                }
+            }
+
+            if (jugadoresSeleccionados.length % 2 !== 0) {
+                alert("Seleccione una cantidad par de jugadores para formar equipos.");
+                return;
+            }
+
+            if (jugadoresSeleccionados.length < 2) {
+                alert("Seleccione más jugadores para formar equipos.");
+                return;
+            }
+
+            // Algoritmo para formar equipos equitativos
+            var equipos = formarEquiposEquitativos(jugadoresSeleccionados);
+
+            mostrarEquipos(equipos.equipo1, equipos.equipo2);
+            calcularValorEquipos(equipos.equipo1, equipos.equipo2);
+        }
+
+        function formarEquiposEquitativos(jugadoresSeleccionados) {
+            // Algoritmo para formar equipos equitativos basado en las habilidades de los jugadores
+            var equipo1 = [];
+            var equipo2 = [];
+
+            // Generar todas las combinaciones posibles de jugadores
+            var combinations = getCombinations(jugadoresSeleccionados, jugadoresSeleccionados.length / 2);
+
+            // Calcular la diferencia de habilidades entre los equipos para cada combinación
+            var minDiff = Infinity;
+            var optimalCombination = [];
+            combinations.forEach(combination => {
+                var habilidadesEquipo1 = combination.reduce((total, jugador) => total + jugador.habilidades.reduce((subtotal, habilidad) => subtotal + habilidad, 0), 0);
+                var habilidadesEquipo2 = jugadoresSeleccionados.reduce((total, jugador) => total + jugador.habilidades.reduce((subtotal, habilidad) => subtotal + habilidad, 0), 0) - habilidadesEquipo1;
+                var diff = Math.abs(habilidadesEquipo1 - habilidadesEquipo2);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    optimalCombination = combination;
+                }
+            });
+
+            // Asignar jugadores a los equipos según la combinación óptima
+            jugadoresSeleccionados.forEach(jugador => {
+                if (optimalCombination.includes(jugador)) {
+                    equipo1.push(jugador);
+                } else {
+                    equipo2.push(jugador);
+                }
+            });
+
+            return {
+                equipo1: equipo1,
+                equipo2: equipo2
+            };
+        }
+
+        function getCombinations(arr, k) {
+            var result = [];
+            function helper(start, combination) {
+                if (combination.length === k) {
+                    result.push([...combination]);
+                    return;
+                }
+                for (let i = start; i < arr.length; i++) {
+                    combination.push(arr[i]);
+                    helper(i + 1, combination);
+                    combination.pop();
+                }
+            }
+            helper(0, []);
+            return result;
+        }
+
+        function mostrarEquipos(equipo1, equipo2) {
+            var equipo1Select = document.getElementById("equipo1");
+            var equipo2Select = document.getElementById("equipo2");
+
+            equipo1Select.innerHTML = "";
+            equipo2Select.innerHTML = "";
+
+                        equipo1.forEach(jugador => {
+                var option = document.createElement("option");
+                option.text = jugador.nombre;
+                equipo1Select.add(option);
+            });
+
+            equipo2.forEach(jugador => {
+                var option = document.createElement("option");
+                option.text = jugador.nombre;
+                equipo2Select.add(option);
+            });
+        }
+
+        function calcularValorEquipos(equipo1, equipo2) {
+            var valorEquipo1 = equipo1.reduce((total, jugador) => total + jugador.habilidades.reduce((subtotal, habilidad) => subtotal + habilidad, 0), 0);
+            var valorEquipo2 = equipo2.reduce((total, jugador) => total + jugador.habilidades.reduce((subtotal, habilidad) => subtotal + habilidad, 0), 0);
+
+            alert("El valor del equipo 1 es: " + valorEquipo1 + "\nEl valor del equipo 2 es: " + valorEquipo2);
+        }
+
+        function copiarEquipos() {
+            var equipo1Text = "";
+            var equipo2Text = "";
+
+            // Iterar sobre los jugadores una vez
+            jugadores.forEach(function(jugador, index) {
+                if (index % 2 === 0) {
+                    equipo1Text += jugador.nombre + "\n";
+                } else {
+                    equipo2Text += jugador.nombre + "\n";
+                }
+            });
+
+            var equiposText = "Equipo 1:\n" + equipo1Text + "\nEquipo 2:\n" + equipo2Text;
+
+            navigator.clipboard.writeText(equiposText).then(function() {
+                alert("Equipos copiados al portapapeles.");
+            }, function(err) {
+                console.error('Error al copiar equipos al portapapeles: ', err);
+            });
+        }
+
+        function redirectToDonationPage() {
+            window.open("https://cafecito.app/fulbito5", "_blank");
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="column">
+            <div class="form-container">
+                <h2>FULBITO</h2>
+                <h4>Nuevo Jugador</h4>            
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre"><br><br>
+                <label for="hab1">Marca:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <input type="number" id="hab1" min="0" max="10"><br>
+                <label for="hab2">Resistencia:</label>
+                <input type="number" id="hab2" min="0" max="10"><br>
+                <label for="hab3">Seguridad:&nbsp;&nbsp;</label>
+                <input type="number" id="hab3" min="0" max="10"><br>
+                <label for="hab4">Pase:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <input type="number" id="hab4" min="0" max="10"><br>
+                <label for="hab5">Gambeta:&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <input type="number" id="hab5" min="0" max="10"><br>
+                <label for="hab6">Velocidad:&nbsp;&nbsp;</label>
+                <input type="number" id="hab6" min="0" max="10"><br>
+                <label for="hab7">Cabeza:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <input type="number" id="hab7" min="0" max="10"><br>
+                <label for="hab8">Potencia:&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <input type="number" id="hab8" min="0" max="10"><br>
+                <label for="hab9">Definición:&nbsp;</label>
+                <input type="number" id="hab9" min="0" max="10"><br><br>
+
+                <div class="button-container">
+                    <button onclick="agregarJugador()">Agregar Jugador</button>
+                    <button onclick="eliminarJugador()">Eliminar Jugador</button>
+                    <button onclick="editarJugador()">Editar Jugador</button>
+                </div>
+            </div>
+            <div class="form-container">
+                <h4>Lista de Jugadores</h4>
+                <label for="editarJugador">Seleccionar Jugadores con CTRL+click:</label>
+                <select id="editarJugador" multiple></select>
+            </div>
+        </div>
+        <div class="column">
+            <div class="form-container">
+                <h4>Armar Equipos</h4>
+                <div class="button-container">
+                    <button onclick="formarEquipos()">Armar Equipos</button>
+                    <button onclick="copiarEquipos()">Copiar Equipos</button>
+                    <h4>Equipo 1</h4>
+                    <select id="equipo1" multiple></select>
+                    <h4>Equipo 2</h4>
+                    <select id="equipo2" multiple></select>
+<p>Fulbito es una app que forma equipos de fútbol entre amigos lo mas equitativo posible. Utiliza un algoritmo que evalúa las habilidades de cada jugador para crear combinaciones justas, asegurando una distribución equilibrada en los equipos.</p>
+            <div id="donation-button">
+                <button onclick="redirectToDonationPage()">Donación para el creador</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

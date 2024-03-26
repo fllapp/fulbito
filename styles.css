@@ -1,0 +1,43 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.section {
+    flex: 1 1 300px;
+}
+
+.section h2 {
+    margin-top: 0;
+}
+
+.form {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+button {
+    cursor: pointer;
+}
+
+button.subir-habilidad,
+button.bajar-habilidad {
+    width: 30px;
+}
