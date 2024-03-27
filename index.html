@@ -52,6 +52,13 @@
             text-align: center;
         }
     </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WRM35KPQ6E"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-WRM35KPQ6E');
+    </script>
     <script>
         var jugadores = [];
 
@@ -171,8 +178,7 @@
             // Calcular la diferencia de habilidades entre los equipos para cada combinación
             var minDiff = Infinity;
             var optimalCombination = [];
-            combinations.forEach(combination => {
-                var habilidadesEquipo1 = combination.reduce((total, jugador) => total + jugador.habilidades.reduce((subtotal, habilidad) => subtotal + habilidad, 0), 0);
+            combinations.forEach(combination => {                var habilidadesEquipo1 = combination.reduce((total, jugador) => total + jugador.habilidades.reduce((subtotal, habilidad) => subtotal + habilidad, 0), 0);
                 var habilidadesEquipo2 = jugadoresSeleccionados.reduce((total, jugador) => total + jugador.habilidades.reduce((subtotal, habilidad) => subtotal + habilidad, 0), 0) - habilidadesEquipo1;
                 var diff = Math.abs(habilidadesEquipo1 - habilidadesEquipo2);
                 if (diff < minDiff) {
@@ -220,7 +226,7 @@
             equipo1Select.innerHTML = "";
             equipo2Select.innerHTML = "";
 
-                        equipo1.forEach(jugador => {
+            equipo1.forEach(jugador => {
                 var option = document.createElement("option");
                 option.text = jugador.nombre;
                 equipo1Select.add(option);
@@ -265,7 +271,21 @@
         function redirectToDonationPage() {
             window.open("https://cafecito.app/fulbito5", "_blank");
         }
+
+        // Contador de visitas
+        function actualizarContadorVisitas() {
+            gtag('event', 'page_view', {
+                'send_to': 'G-WRM35KPQ6E',
+                'event_callback': function() {
+                    var contador = document.getElementById('contador-visitas');
+                    contador.textContent = parseInt(contador.textContent) + 1;
+                }
+            });
+        }
+
+        actualizarContadorVisitas();
     </script>
+
 </head>
 <body>
     <div class="container">
@@ -322,8 +342,10 @@
         </div>
         <div style="text-align: center;">
            <a href='https://cafecito.app/fulbito5' rel='noopener' target='_blank'><img srcset='https://cdn.cafecito.app/imgs/buttons/button_5.png 1x, https://cdn.cafecito.app/imgs/buttons/button_5_2x.png 2x, https://cdn.cafecito.app/imgs/buttons/button_5_3.75x.png 3.75x' src='https://cdn.cafecito.app/imgs/buttons/button_5.png' alt='Invitame un café en cafecito.app' /></a>
-            </div>
         </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <p>VWS: <span id="contador-visitas">0</span></p>
     </div>
 </body>
 </html>
